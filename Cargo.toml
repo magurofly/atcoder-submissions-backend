@@ -1,0 +1,15 @@
+[package]
+name = "atcoder-submissions-backend"
+version = "0.1.0"
+edition = "2021"
+authors = ["magurofly <54321436+magurofly@users.noreply.github.com>"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+regex = "1.12.3"
+serde = "1.0.228"
+wasm-bindgen = "0.2.120"
+worker = { version = "0.8", features = ["d1"] }
+worker-macros = { version = "0.8" }
