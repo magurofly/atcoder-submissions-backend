@@ -8,7 +8,7 @@ CREATE TABLE submissions (
     code_size INTEGER NOT NULL,
     status TEXT NOT NULL,
     execution_time INTEGER,
-    memory_usage INTEGER
+    url TEXT NOT NULL UNIQUE
 );
 
 CREATE INDEX idx_submissions_task_id ON submissions (task_id);
@@ -19,46 +19,29 @@ CREATE INDEX idx_submissions_task_score_timestamp ON submissions (task_id, score
 CREATE INDEX idx_submissions_task_code_size_timestamp ON submissions (task_id, code_size, timestamp);
 CREATE INDEX idx_submissions_task_status_timestamp ON submissions (task_id, status, timestamp);
 CREATE INDEX idx_submissions_task_execution_time_timestamp ON submissions (task_id, execution_time, timestamp);
-CREATE INDEX idx_submissions_task_memory_usage_timestamp ON submissions (task_id, memory_usage, timestamp);
 
 CREATE INDEX idx_submissions_task_status_score_timestamp ON submissions (task_id, status, score, timestamp);
 CREATE INDEX idx_submissions_task_status_code_size_timestamp ON submissions (task_id, status, code_size, timestamp);
 CREATE INDEX idx_submissions_task_status_execution_time_timestamp ON submissions (task_id, status, execution_time, timestamp);
-CREATE INDEX idx_submissions_task_status_memory_usage_timestamp ON submissions (task_id, status, memory_usage, timestamp);
 
 CREATE INDEX idx_submissions_task_status_language_timestamp ON submissions (task_id, status, language_id, timestamp);
 CREATE INDEX idx_submissions_task_status_language_score_timestamp ON submissions (task_id, status, language_id, score, timestamp);
 CREATE INDEX idx_submissions_task_status_language_code_size_timestamp ON submissions (task_id, status, language_id, code_size, timestamp);
 CREATE INDEX idx_submissions_task_status_language_execution_time_timestamp ON submissions (task_id, status, language_id, execution_time, timestamp);
-CREATE INDEX idx_submissions_task_status_language_memory_usage_timestamp ON submissions (task_id, status, language_id, memory_usage, timestamp);
 
 CREATE TABLE tasks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    contest_id INTEGER NOT NULL,
-    name TEXT NOT NULL
+    contest_name INTEGER NOT NULL,
+    task_name TEXT NOT NULL,
+    UNIQUE (contest_name, task_name)
 );
-
-CREATE INDEX idx_tasks_contest_id ON tasks (contest_id);
-CREATE INDEX idx_tasks_name ON tasks (name);
-
-CREATE TABLE contests (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
-);
-
-CREATE INDEX idx_contests_name ON contests (name);
 
 CREATE TABLE users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL
+    name TEXT NOT NULL UNIQUE
 );
-
-CREATE INDEX idx_users_name ON users (name);
 
 CREATE TABLE languages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT NOT NULL
+    name TEXT NOT NULL UNIQUE
 );
-
-CREATE INDEX idx_languages_description ON languages (description);
