@@ -90,16 +90,21 @@ pub async fn process_fetch(req: Request, ctx: RouteContext<()>) -> Result<Respon
     let stat_tasks = d1.prepare("INSERT INTO tasks(contest_name, task_name) VALUES (?1, ?2) ON CONFLICT DO UPDATE SET task_name = task_name RETURNING id");
     let stat_users = d1.prepare("INSERT INTO users(name) VALUES (?1) ON CONFLICT DO UPDATE SET name = name RETURNING id");
     let stat_languages = d1.prepare("INSERT INTO languages(name) VALUES (?1) ON CONFLICT DO UPDATE SET name = name RETURNING id");
-    let stat_insert = d1.prepare("INSERT INTO submissions(task_id, user_id, language_id, timestamp, score, code_size, status, execution_time, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);");
+    let stat_insert = d1.prepare("INSERT INTO submissions(task_id, user_id, language_id, timestamp, score, code_size, status, execution_time, url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;");
 
     let mut buffer: Vec<CsvRow> = vec![];
     let run_query = async |buffer: &Vec<CsvRow>| -> Result<(), worker::Error> {
         let task_args = buffer.iter().map(|row| vec![D1Type::Text(&row.contest_id), D1Type::Text(&row.problem_id)] ).collect::<Vec<_>>();
-        let task_ids = d1.batch(stat_tasks.batch_bind(task_args.iter())?).await?;
+        let task_ids = d1.batch(stat_tasks.batch_bind(task_args.iter())?);
         let user_args = buffer.iter().map(|row| vec![D1Type::Text(&row.user_id)] ).collect::<Vec<_>>();
-        let user_ids = d1.batch(stat_users.batch_bind(user_args.iter())?).await?;
+        let user_ids = d1.batch(stat_users.batch_bind(user_args.iter())?);
         let language_args = buffer.iter().map(|row| vec![D1Type::Text(&row.language)] ).collect::<Vec<_>>();
-        let language_ids = d1.batch(stat_languages.batch_bind(language_args.iter())?).await?;
+        let language_ids = d1.batch(stat_languages.batch_bind(language_args.iter())?);
+
+        let task_ids = task_ids.await?;
+        let user_ids = user_ids.await?;
+        let language_ids = language_ids.await?;
+
         let insert_args = izip!(task_ids.iter(), user_ids.iter(), language_ids.iter(), buffer.iter()).map(|(task_id, user_id, language_id, csv)| {
             let task_id = D1Type::Integer(task_id.results::<IdRow>()?.pop().unwrap().id);
             let user_id = D1Type::Integer(user_id.results::<IdRow>()?.pop().unwrap().id);
